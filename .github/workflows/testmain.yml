@@ -1,0 +1,38 @@
+name: Create AWS Resources
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-east-1
+  TABLE_NAME: my-dynamodb-table
+  BUCKET_NAME: my-s3-bucket
+  LAMBDA_NAME: my-lambda-function
+  EVENT_RULE_NAME: my-event-rule
+
+jobs:
+  create_resources:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          sudo pip3 install awscli --upgrade --user
+
+      - name: Create AWS resources
+        run: |
+          aws cloudformation create-stack \
+            --stack-name my-stack \
+            --template-body file://cloudformation.yml \
+            --parameters ParameterKey=TableName,ParameterValue=$TABLE_NAME \
+                         ParameterKey=BucketName,ParameterValue=$BUCKET_NAME \
+                         ParameterKey=LambdaName,ParameterValue=$LAMBDA_NAME \
+                         ParameterKey=EventRuleName,ParameterValue=$EVENT_RULE_NAME \
+            --capabilities CAPABILITY_NAMED_IAM
